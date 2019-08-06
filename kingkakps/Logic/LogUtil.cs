@@ -10,7 +10,7 @@ namespace kingkakps
     class LogUtil
     {
         System.Windows.Forms.TextBox textBox;
-        static readonly public string MessageHistoryKey = "MessageHistory";
+        static readonly public string LastLogsKey = "LastLogs";
         static readonly int MaxLogSavingSec = 60 * 60 * 24 * 7;
 
         private static LogUtil instance = null;
@@ -42,27 +42,27 @@ namespace kingkakps
             WriteToLogBox(logText);
             
             var newLogs = new List<Log>();
-            var serializedLogs = RedisConnector.GetString(MessageHistoryKey, Form1.IsRealServer);
+            var serializedLogs = RedisConnector.GetString(LastLogsKey, Form1.IsRealServer);
             if (serializedLogs != null)
             {
-                var lastHistories = JsonConvert.DeserializeObject<List<Log>>(serializedLogs);
-                newLogs = lastHistories.Where(x => Util.DateTimeToTotalSec(x.time) + MaxLogSavingSec > Util.DateTimeToTotalSec(DateTime.Now)).ToList();
+                var lastLogs = JsonConvert.DeserializeObject<List<Log>>(serializedLogs);
+                newLogs = lastLogs.Where(x => Util.DateTimeToTotalSec(x.time) + MaxLogSavingSec > Util.DateTimeToTotalSec(DateTime.Now)).ToList();
             }
 
             newLogs.Add(new Log(DateTime.Now, log));
-            var newSerializeHistory = JsonConvert.SerializeObject(newLogs);
-            RedisConnector.SetString(MessageHistoryKey, newSerializeHistory, Form1.IsRealServer);
+            var newSerializeLogs = JsonConvert.SerializeObject(newLogs);
+            RedisConnector.SetString(LastLogsKey, newSerializeLogs, Form1.IsRealServer);
         }
 
         public void WriteLastLogs()
         {
-            var serializedLogs = RedisConnector.GetString(MessageHistoryKey, Form1.IsRealServer);
+            var serializedLogs = RedisConnector.GetString(LastLogsKey, Form1.IsRealServer);
             if (serializedLogs != null)
             {
                 var lastLogs = JsonConvert.DeserializeObject<List<Log>>(serializedLogs);
-                var newLogs = lastLogs.Where(x => Util.DateTimeToTotalSec(x.time) + MaxLogSavingSec > Util.DateTimeToTotalSec(DateTime.Now)).ToList();
+                var logs = lastLogs.Where(x => Util.DateTimeToTotalSec(x.time) + MaxLogSavingSec > Util.DateTimeToTotalSec(DateTime.Now)).ToList();
 
-                foreach (var log in newLogs)
+                foreach (var log in logs)
                 {
                     var logText = MakeLogText(log.time, log.message);
                     WriteToLogBox(logText);
@@ -72,7 +72,7 @@ namespace kingkakps
 
         public void ResetLastLog()
         {
-            RedisConnector.KeyDelete(MessageHistoryKey, Form1.IsRealServer);
+            RedisConnector.KeyDelete(LastLogsKey, Form1.IsRealServer);
         }
 
         public void ClearLogBox()

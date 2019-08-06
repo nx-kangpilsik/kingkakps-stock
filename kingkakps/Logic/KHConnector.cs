@@ -124,7 +124,7 @@ namespace kingkakps
         }
 
         // 조건식 리스트 가져오기
-        public int GetConditionLoad()
+        public int GetConditionExpression()
         {
             return conn.GetConditionLoad();
         }

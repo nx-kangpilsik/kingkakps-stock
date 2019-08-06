@@ -35,7 +35,5 @@ namespace kingkakps
         {
             return ((DateTimeOffset)dateTime).ToUnixTimeSeconds();
         }
-
-        
     }
 }

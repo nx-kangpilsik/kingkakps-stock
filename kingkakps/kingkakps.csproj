@@ -80,7 +80,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CallBack\CallBack.cs" />
+    <Compile Include="Logic\Account.cs" />
+    <Compile Include="Progress\ProgressUtil.cs" />
+    <Compile Include="Progress\Test.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

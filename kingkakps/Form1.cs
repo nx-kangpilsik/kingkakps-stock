@@ -5,13 +5,14 @@ using System.Windows.Forms;
 using Newtonsoft.Json;
 using System.Collections;
 using System.Linq;
+using kingkakps.Logic;
 
 namespace kingkakps
 {
     public partial class Form1 : Form
     {
-        ManualResetEvent LoginEvent = new ManualResetEvent(false);
         List<Thread> threads = new List<Thread>();
+        static public ManualResetEvent LoginEvent = new ManualResetEvent(false);
 
         static public readonly string LongTermBuyListKey = "LongTermBuyList";
         static public readonly string LongTermBuySetKey = "LongTermBuySet";
@@ -51,10 +52,10 @@ namespace kingkakps
             progressThread.Start();
             threads.Add(progressThread);
                         
-            // 머니 업데이트
-            Thread updateRemainMoney = new Thread(UpdateRemainMoney);
-            updateRemainMoney.Start();
-            threads.Add(updateRemainMoney);
+            // 계정 정보(머니, 주식, 등등..) 업데이트
+            Thread moneyUpdateThread = new Thread(Account.ReqestToServer);
+            moneyUpdateThread.Start();
+            threads.Add(moneyUpdateThread);
 
             // Queue 에 들어있는 것 백그라운드 작업
             Thread sendOrder = new Thread(RequestQueue.SendOrderBackgroundJob);
@@ -68,179 +69,12 @@ namespace kingkakps
 
             if (IsRealServer)
             {
-                RealProgress();
+                //Todo 리얼도 만들자 by kingkakps
             }
             else
             {
-                TestProgress();
+                Test.Progress();
             }
-        }
-
-        public void TestProgress()
-        {
-            LoginEvent.WaitOne();
-            // 여기부터 로직 구현
-            //var test = KHConnector.Instance.RequestPERData("1");
-            //KHConnector.Instance.RequestUpperLimitList();
-            //KHConnector.Instance.GetKospi200Point();
-
-            // 조건식을 가져온다.
-            KHConnector.Instance.GetConditionLoad();
-
-            // 최근 로그를 메세지에 쓴다.
-            LogUtil.Instance.WriteLastLogs();
-
-            //ResetLongTermBuyList(LongTermBuySetKey, IsRealServer);
-            //RedisConnector.KeyDelete(HavingStockInfoKey, IsRealServer);
-            //RedisConnector.KeyDelete(NotConcludedBuyKey, IsRealServer);
-            //RedisConnector.KeyDelete(NotConcludedSellKey, IsRealServer);
-
-
-            while (true)
-            {
-                // 내일은 일단 다 팔자
-                // TODO : kingkakps 2019/01/15 테스트 판매 코드. 
-                if (090000 < Util.GetCurrentTimeInt64() && Util.GetCurrentTimeInt64() < 093000)
-                {
-                    //var serializeInfo = RedisConnector.GetString(HavingStockInfoKey, IsRealServer);
-                    //if (serializeInfo != null)
-                    //{
-                    //    var havingStockInfoList = JsonConvert.DeserializeObject<List<AutoUpdateStockInfo>>(serializeInfo);
-                    //    foreach (var info in havingStockInfoList)
-                    //    {
-                    //        var order = new SendOrder("주식주문", Util.GetScrNum(), 2, info.code, Int32.Parse(info.count), 0, "03", "");
-                    //        order.Send();
-                    //    }
-                    //}
-                }
-
-                
-                if (093000 < Util.GetCurrentTimeInt64() && Util.GetCurrentTimeInt64() < 100000)
-                {
-                    // LongTermBuySetKey 플래그가 켜져있다면
-                    if (RedisConnector.IsFlagOn(LongTermBuySetKey, IsRealServer))
-                    {
-                        // 키 리스트 가져와서.
-                        var buyCodes = JsonConvert.DeserializeObject<Dictionary<string, BuyStockInfo>>(RedisConnector.GetString(LongTermBuyListKey, IsRealServer));
-
-                        foreach (var buyCode in buyCodes.Values)
-                        {
-                            // 구매하고.
-                            var order = new Order("주식주문", Util.GetScrNum(), 1, buyCode.code, buyCode.count , 0, "03", "");
-                            order.Send();
-                        }
-
-                        // 키 삭제.
-                        RedisConnector.KeyDelete(LongTermBuyListKey, IsRealServer);
-
-                        // LongTermBuySetKey 플래그를 끈다.
-                        RedisConnector.FlagOff(LongTermBuySetKey, IsRealServer);
-                    }
-                }
-
-                // 장 종료될때쯤 주문 잘 안된애들 취소.
-                if (160000 < Util.GetCurrentTimeInt64() && Util.GetCurrentTimeInt64() < 161000)
-                {
-                    {
-                        var serializeInfo = RedisConnector.GetString(NotConcludedBuyKey, IsRealServer);
-                        if (serializeInfo != null)
-                        {
-                            var NotConcludedBuyInfoList = JsonConvert.DeserializeObject<List<AutoUpdateNotConcludedStockInfo>>(serializeInfo);
-                            foreach (var info in NotConcludedBuyInfoList)
-                            {
-                                var order = new Order("주식주문", Util.GetScrNum(), 3, info.code, int.Parse(info.count), 0, "", info.originalOrderNo);
-                                order.Send();
-                            }
-                        }
-                    }
-                    {
-                        var serializeInfo = RedisConnector.GetString(NotConcludedSellKey, IsRealServer);
-                        if (serializeInfo != null)
-                        {
-                            var NotConcludedSellInfoList = JsonConvert.DeserializeObject<List<AutoUpdateNotConcludedStockInfo>>(serializeInfo);
-                            foreach (var info in NotConcludedSellInfoList)
-                            {
-                                var order = new Order("주식주문", Util.GetScrNum(), 4, info.code, int.Parse(info.count), 0, "", info.originalOrderNo);
-                                order.Send();
-                            }
-                        }
-                    }
-                }
-
-                {// 리스트 뽑아내기
-                    if (180000 < Util.GetCurrentTimeInt64() && Util.GetCurrentTimeInt64() < 181000)
-                    {
-                        var isUnderProfitBuySet = RedisConnector.IsFlagOn(UnderProfitBuySetKey, IsRealServer);
-                        if (!isUnderProfitBuySet)
-                        {
-                            var serializeInfo = RedisConnector.GetString(HavingStockInfoKey, IsRealServer);
-                            if (serializeInfo != null)
-                            {
-                                var UnderProfitBuyList = new List<BuyStockInfo>();
-                                var havingStockInfoList = JsonConvert.DeserializeObject<List<AutoUpdateStockInfo>>(serializeInfo);
-                                foreach (var info in havingStockInfoList)
-                                {
-                                    if (info.profitPercent < BuyLossPercent)
-                                    {
-                                        //var savingStockInfo = new BuyStockInfo(info.code, info.profitPercent, info.price, BuyMoneyLoss/info.price, "");
-                                        //UnderProfitBuyList.Add(savingStockInfo);
-                                    }
-                                    //var savingInfo = JsonConvert.SerializeObject(savingStockInfoList);
-                                    //RedisConnector.SetString(HavingStockInfoKey, savingInfo, IsRealServer);
-                                }
-
-                                RedisConnector.FlagOn(UnderProfitBuySetKey, IsRealServer);
-                            }
-                        }
-                    }
-                    
-                    if (181000 < Util.GetCurrentTimeInt64() && Util.GetCurrentTimeInt64() < 182000)
-                    {
-                        var isLongTermBuySet = RedisConnector.IsFlagOn(LongTermBuySetKey, IsRealServer);
-                        if (!isLongTermBuySet)
-                        {
-                            var ret = KHConnector.Instance.SendCondition(ConditionName.최근결산PER30, 1, 0);
-
-                            if (ret == 1) LogUtil.Instance.WriteLog($"{ConditionName.최근결산PER30} 조건식 조건 셋팅 실행...");
-                            else LogUtil.Instance.WriteLog($"{ConditionName.최근결산PER30} 조건식 조건 셋팅 실행 실패");
-
-                        }
-                    }
-                }
-
-                System.Threading.Thread.Sleep(60000);
-            }
-        }
-
-        public void RealProgress()
-        {
-            
-        }
-
-        public void UpdateRemainMoney()
-        {
-            LoginEvent.WaitOne();
-
-            while (true)
-            {
-                KHConnector.Instance.RequestAccountInfo();
-
-                //미체결 요청 한다.
-                KHConnector.Instance.RequestNotConcludedOrder("1");
-                KHConnector.Instance.RequestNotConcludedOrder("2");
-
-                System.Threading.Thread.Sleep(30000);
-            }
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            //자동매매 정지
-            foreach (var thread in threads)
-            {
-                thread.Abort();
-            }
-            Application.Exit();
         }
 
         // 커넥션 연결 됐을때
@@ -317,8 +151,7 @@ namespace kingkakps
                 listBox1.Items.Add($"당일손익율 = " + Int32.Parse(axKHOpenAPI1.GetCommData(e.sTrCode, e.sRQName, 0, "당일손익율").Trim()));
                 listBox1.Items.Add($"당월손익율 = " + Int32.Parse(axKHOpenAPI1.GetCommData(e.sTrCode, e.sRQName, 0, "당월손익율").Trim()));
                 listBox1.Items.Add($"누적손익율 = " + Int32.Parse(axKHOpenAPI1.GetCommData(e.sTrCode, e.sRQName, 0, "누적손익율").Trim()));
-
-
+                
                 var count = axKHOpenAPI1.GetRepeatCnt(e.sTrCode, e.sRQName);
                 dataGridView1.Rows.Clear();
 
@@ -435,9 +268,7 @@ namespace kingkakps
             }
             else if (e.sRQName == "상하한가요청")
             {
-                // TODO : kingkakps 
-                // 지금은 딱히 필요한 기능이 아님
-                // 나중에 구현하자.
+                // 필요없음
             }
             else if (e.sRQName == "코스피200지수요청")
             {
@@ -455,10 +286,10 @@ namespace kingkakps
                 var eCode = axKHOpenAPI1.CommGetData(e.sTrCode, "", e.sRQName, 0, "종목코드").Trim();
                 if (codeInfos.TryGetValue(eCode, out var value))
                 {
-                    value.name = axKHOpenAPI1.CommGetData(e.sTrCode, "", e.sRQName, 0, "종목명").Trim();
-                    value.per = double.Parse(axKHOpenAPI1.CommGetData(e.sTrCode, "", e.sRQName, 0, "PER").Trim());
-                    value.price = Math.Abs(Int32.Parse(axKHOpenAPI1.CommGetData(e.sTrCode, "", e.sRQName, 0, "현재가").Trim().ToString()));
-                    value.count = Config.LongTermBuyPer / value.price;
+                    codeInfos[eCode].name = axKHOpenAPI1.CommGetData(e.sTrCode, "", e.sRQName, 0, "종목명").Trim();
+                    codeInfos[eCode].per = double.Parse(axKHOpenAPI1.CommGetData(e.sTrCode, "", e.sRQName, 0, "PER").Trim());
+                    codeInfos[eCode].price = Math.Abs(Int32.Parse(axKHOpenAPI1.CommGetData(e.sTrCode, "", e.sRQName, 0, "현재가").Trim().ToString()));
+                    codeInfos[eCode].count = Config.LongTermBuyPer / value.price;
                 }
 
                 var newSerializeCodeInfos = JsonConvert.SerializeObject(codeInfos);
@@ -533,11 +364,15 @@ namespace kingkakps
                 LogUtil.Instance.WriteLog($"{e.sScrNo} : {e.sMsg}");
             }
         }
-
-        static public void ResetLongTermBuyList(string key, bool isRealServer)
+        
+        // 프로그램 중지
+        private void button1_Click(object sender, EventArgs e)
         {
-            RedisConnector.FlagOff(key, isRealServer);
-            LogUtil.Instance.WriteLog($"{key} 가 리셋되었습니다.");
+            foreach (var thread in threads)
+            {
+                thread.Abort();
+            }
+            Application.Exit();
         }
     }
 }
