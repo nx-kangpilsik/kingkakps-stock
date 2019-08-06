@@ -28,7 +28,6 @@ namespace kingkakps
         static public readonly int BuyMoneyLoss = 10000;
 
         int AccountMoney = 0;
-        int TestMode = 0;
         static public bool IsRealServer = false;
 
         public Form1()
@@ -249,7 +248,7 @@ namespace kingkakps
         private void axKHOpenAPI_OnEventConnect(object sender, AxKHOpenAPILib._DKHOpenAPIEvents_OnEventConnectEvent e)
         {
             textBox1.Text = KHConnector.Instance.GetLoginInfo("USER_ID").Trim();
-            textBox2.Text = KHConnector.Instance.GetLoginInfo("ACCNO").Trim().Split(';')[TestMode];
+            textBox2.Text = KHConnector.Instance.GetLoginInfo("ACCNO").Trim().Split(';')[0];
             textBox3.Text = KHConnector.Instance.GetLoginInfo("GetServerGubun").Trim();
 
             if (textBox3.Text == "1")
