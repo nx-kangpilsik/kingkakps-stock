@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kingkakps", "kingkakps\kingkakps.csproj", "{5D964C5B-53B8-4598-80FB-1E6D65F33023}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5D964C5B-53B8-4598-80FB-1E6D65F33023}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D964C5B-53B8-4598-80FB-1E6D65F33023}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D964C5B-53B8-4598-80FB-1E6D65F33023}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D964C5B-53B8-4598-80FB-1E6D65F33023}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8698E555-587B-4F70-9194-1F4149C15A02}
+	EndGlobalSection
+EndGlobal
