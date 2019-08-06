@@ -18,8 +18,7 @@ namespace kingkakps
 
         static public readonly string UnderProfitBuyListKey = "UnderProfitBuyList";
         static public readonly string UnderProfitBuySetKey = "UnderProfitBuySet";
-
-
+        
         static public readonly string HavingStockInfoKey = "HavingStockInfo";
         static public readonly string NotConcludedBuyKey = "NotConcludedBuy";
         static public readonly string NotConcludedSellKey = "NotConcludedSell";
@@ -43,7 +42,7 @@ namespace kingkakps
             axKHOpenAPI1.OnReceiveTrCondition += axKHOpenAPI_OnReceiveTrCondition;
 
             new KHConnector(axKHOpenAPI1);
-            new MessageLog(MessageLogBox);
+            new LogUtil(MessageLogBox);
 
             KHConnector.Instance.Connect();
 
@@ -89,7 +88,7 @@ namespace kingkakps
             KHConnector.Instance.GetConditionLoad();
 
             // 최근 로그를 메세지에 쓴다.
-            MessageLog.Instance.LastLogShow();
+            LogUtil.Instance.WriteLastLogs();
 
             //ResetLongTermBuyList(LongTermBuySetKey, IsRealServer);
             //RedisConnector.KeyDelete(HavingStockInfoKey, IsRealServer);
@@ -127,7 +126,7 @@ namespace kingkakps
                         foreach (var buyCode in buyCodes.Values)
                         {
                             // 구매하고.
-                            var order = new SendOrder("주식주문", Util.GetScrNum(), 1, buyCode.code, buyCode.count , 0, "03", "");
+                            var order = new Order("주식주문", Util.GetScrNum(), 1, buyCode.code, buyCode.count , 0, "03", "");
                             order.Send();
                         }
 
@@ -135,7 +134,7 @@ namespace kingkakps
                         RedisConnector.KeyDelete(LongTermBuyListKey, IsRealServer);
 
                         // LongTermBuySetKey 플래그를 끈다.
-                        RedisConnector.SetFlagOff(LongTermBuySetKey, IsRealServer);
+                        RedisConnector.FlagOff(LongTermBuySetKey, IsRealServer);
                     }
                 }
 
@@ -149,7 +148,7 @@ namespace kingkakps
                             var NotConcludedBuyInfoList = JsonConvert.DeserializeObject<List<AutoUpdateNotConcludedStockInfo>>(serializeInfo);
                             foreach (var info in NotConcludedBuyInfoList)
                             {
-                                var order = new SendOrder("주식주문", Util.GetScrNum(), 3, info.code, int.Parse(info.count), 0, "", info.originalOrderNo);
+                                var order = new Order("주식주문", Util.GetScrNum(), 3, info.code, int.Parse(info.count), 0, "", info.originalOrderNo);
                                 order.Send();
                             }
                         }
@@ -161,7 +160,7 @@ namespace kingkakps
                             var NotConcludedSellInfoList = JsonConvert.DeserializeObject<List<AutoUpdateNotConcludedStockInfo>>(serializeInfo);
                             foreach (var info in NotConcludedSellInfoList)
                             {
-                                var order = new SendOrder("주식주문", Util.GetScrNum(), 4, info.code, int.Parse(info.count), 0, "", info.originalOrderNo);
+                                var order = new Order("주식주문", Util.GetScrNum(), 4, info.code, int.Parse(info.count), 0, "", info.originalOrderNo);
                                 order.Send();
                             }
                         }
@@ -190,7 +189,7 @@ namespace kingkakps
                                     //RedisConnector.SetString(HavingStockInfoKey, savingInfo, IsRealServer);
                                 }
 
-                                RedisConnector.SetFlagOn(UnderProfitBuySetKey, IsRealServer);
+                                RedisConnector.FlagOn(UnderProfitBuySetKey, IsRealServer);
                             }
                         }
                     }
@@ -202,8 +201,8 @@ namespace kingkakps
                         {
                             var ret = KHConnector.Instance.SendCondition(ConditionName.최근결산PER30, 1, 0);
 
-                            if (ret == 1) MessageLog.Instance.Write($"{ConditionName.최근결산PER30} 조건식 조건 셋팅 실행...");
-                            else MessageLog.Instance.Write($"{ConditionName.최근결산PER30} 조건식 조건 셋팅 실행 실패");
+                            if (ret == 1) LogUtil.Instance.WriteLog($"{ConditionName.최근결산PER30} 조건식 조건 셋팅 실행...");
+                            else LogUtil.Instance.WriteLog($"{ConditionName.최근결산PER30} 조건식 조건 셋팅 실행 실패");
 
                         }
                     }
@@ -271,27 +270,27 @@ namespace kingkakps
         {
             if (e.sGubun == "0")
             {
-                MessageLog.Instance.Write("=========================================");
-                MessageLog.Instance.Write("주문/체결시간 : " + axKHOpenAPI1.GetChejanData(908));
-                MessageLog.Instance.Write("종목명 : " + axKHOpenAPI1.GetChejanData(302));
-                MessageLog.Instance.Write("주문수량 : " + axKHOpenAPI1.GetChejanData(900));
-                MessageLog.Instance.Write("체결수량 : " + axKHOpenAPI1.GetChejanData(930));
-                MessageLog.Instance.Write("체결가격 : " + axKHOpenAPI1.GetChejanData(910));
-                MessageLog.Instance.Write("=========================================");
+                LogUtil.Instance.WriteLog("=========================================");
+                LogUtil.Instance.WriteLog("주문/체결시간 : " + axKHOpenAPI1.GetChejanData(908));
+                LogUtil.Instance.WriteLog("종목명 : " + axKHOpenAPI1.GetChejanData(302));
+                LogUtil.Instance.WriteLog("주문수량 : " + axKHOpenAPI1.GetChejanData(900));
+                LogUtil.Instance.WriteLog("체결수량 : " + axKHOpenAPI1.GetChejanData(930));
+                LogUtil.Instance.WriteLog("체결가격 : " + axKHOpenAPI1.GetChejanData(910));
+                LogUtil.Instance.WriteLog("=========================================");
             }
             else if (e.sGubun == "1")
             {
-                MessageLog.Instance.Write("=========================================");
-                MessageLog.Instance.Write("종목코드 : " + axKHOpenAPI1.GetChejanData(9001));
-                MessageLog.Instance.Write("보유수량 : " + axKHOpenAPI1.GetChejanData(930));
-                MessageLog.Instance.Write("예수금 : " + axKHOpenAPI1.GetChejanData(951));
-                MessageLog.Instance.Write("=========================================");
+                LogUtil.Instance.WriteLog("=========================================");
+                LogUtil.Instance.WriteLog("종목코드 : " + axKHOpenAPI1.GetChejanData(9001));
+                LogUtil.Instance.WriteLog("보유수량 : " + axKHOpenAPI1.GetChejanData(930));
+                LogUtil.Instance.WriteLog("예수금 : " + axKHOpenAPI1.GetChejanData(951));
+                LogUtil.Instance.WriteLog("=========================================");
             }
             else if (e.sGubun == "3")
             {
-                MessageLog.Instance.Write("=========================================");
-                MessageLog.Instance.Write("구분 : 특이신호");
-                MessageLog.Instance.Write("=========================================");
+                LogUtil.Instance.WriteLog("=========================================");
+                LogUtil.Instance.WriteLog("구분 : 특이신호");
+                LogUtil.Instance.WriteLog("=========================================");
             }
         }
 
@@ -465,7 +464,7 @@ namespace kingkakps
                 var newSerializeCodeInfos = JsonConvert.SerializeObject(codeInfos);
                 RedisConnector.SetString(LongTermBuyListKey, newSerializeCodeInfos, IsRealServer);
                 // LongTermBuySetKey 플래그를 켠다.
-                RedisConnector.SetFlagOn(LongTermBuySetKey, IsRealServer);
+                RedisConnector.FlagOn(LongTermBuySetKey, IsRealServer);
             }
         }
 
@@ -531,14 +530,14 @@ namespace kingkakps
             }
             else
             {
-                MessageLog.Instance.Write($"{e.sScrNo} : {e.sMsg}");
+                LogUtil.Instance.WriteLog($"{e.sScrNo} : {e.sMsg}");
             }
         }
 
         static public void ResetLongTermBuyList(string key, bool isRealServer)
         {
-            RedisConnector.SetFlagOff(key, isRealServer);
-            MessageLog.Instance.Write($"{key} 가 리셋되었습니다.");
+            RedisConnector.FlagOff(key, isRealServer);
+            LogUtil.Instance.WriteLog($"{key} 가 리셋되었습니다.");
         }
     }
 }

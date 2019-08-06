@@ -9,7 +9,7 @@ namespace kingkakps
 
     static class RequestQueue
     {
-        static public List<SendOrder> SendOrderList = new List<SendOrder>() { };
+        static public List<Order> SendOrderList = new List<Order>() { };
         
         static public void SendOrderBackgroundJob()
         {
@@ -23,7 +23,7 @@ namespace kingkakps
                         , sendOrder.nPrice, sendOrder.sHogaGb, sendOrder.sOrgOrderNo);
                     if (ret != KOAErrorCode.OP_ERR_NONE)
                     {
-                        MessageLog.Instance.Write($"RequestBuyStock Error : {ret.ToString()}");
+                        LogUtil.Instance.WriteLog($"RequestBuyStock Error : {ret.ToString()}");
                     }
 
                     SendOrderList.Remove(sendOrder);
@@ -32,7 +32,7 @@ namespace kingkakps
         }
     }
 
-    class SendOrder
+    class Order
     {
         public string sRQName;
         public string sScreenNo;
@@ -43,7 +43,7 @@ namespace kingkakps
         public string sHogaGb;
         public string sOrgOrderNo;
 
-        public SendOrder(string name, string screenNo, int orderType, string code, int count, int price, string hogaGb, string orderNo)
+        public Order(string name, string screenNo, int orderType, string code, int count, int price, string hogaGb, string orderNo)
         {
             sRQName = name;
             sScreenNo = screenNo;

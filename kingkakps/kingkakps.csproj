@@ -89,7 +89,7 @@
     </Compile>
     <Compile Include="Logic\Config.cs" />
     <Compile Include="Logic\KHConnector.cs" />
-    <Compile Include="Logic\MessageLog.cs" />
+    <Compile Include="Logic\LogUtil.cs" />
     <Compile Include="Logic\RedisConnector.cs" />
     <Compile Include="Logic\RequestQueue.cs" />
     <Compile Include="Logic\Schema.cs" />

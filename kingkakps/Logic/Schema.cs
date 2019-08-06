@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace kingkakps
 {
-    class MessageHistory
+    class Log
     {
-        public DateTime LogTime;
-        public string Message;
+        public DateTime time;
+        public string message;
 
-        public MessageHistory(DateTime logTime, string message)
+        public Log(DateTime time, string message)
         {
-            LogTime = logTime;
-            Message = message;
+            this.time = time;
+            this.message = message;
         }
     }
 

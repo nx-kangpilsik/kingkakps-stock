@@ -48,7 +48,7 @@ namespace kingkakps
             return db.KeyDelete(key);
         }
 
-        static public bool SetFlagOff(string key, bool isRealServer)
+        static public bool FlagOff(string key, bool isRealServer)
         {
             if (!isRealServer)
             {
@@ -58,7 +58,7 @@ namespace kingkakps
             return db.StringSet(key, "0");
         }
 
-        static public bool SetFlagOn(string key, bool isRealServer)
+        static public bool FlagOn(string key, bool isRealServer)
         {
             if (!isRealServer)
             {
