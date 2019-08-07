@@ -44,7 +44,7 @@ namespace kingkakps
                 if (093000 < Util.GetCurrentTimeInt64() && Util.GetCurrentTimeInt64() < 100000)
                 {
                     // LongTermBuySetKey 플래그가 켜져있다면
-                    if (RedisConnector.IsFlagOn(Form1.LongTermBuySetKey, Form1.IsRealServer))
+                    if (RedisConnector.IsFlagOn(Form1.LongTermBuySetFlagKey, Form1.IsRealServer))
                     {
                         // 키 리스트 가져와서.
                         var buyCodes = JsonConvert.DeserializeObject<Dictionary<string, BuyStockInfo>>(RedisConnector.GetString(Form1.LongTermBuyListKey, Form1.IsRealServer));
@@ -60,7 +60,7 @@ namespace kingkakps
                         RedisConnector.KeyDelete(Form1.LongTermBuyListKey, Form1.IsRealServer);
 
                         // LongTermBuySetKey 플래그를 끈다.
-                        RedisConnector.FlagOff(Form1.LongTermBuySetKey, Form1.IsRealServer);
+                        RedisConnector.FlagOff(Form1.LongTermBuySetFlagKey, Form1.IsRealServer);
                     }
                 }
 
@@ -96,7 +96,7 @@ namespace kingkakps
                 {// 리스트 뽑아내기
                     if (180000 < Util.GetCurrentTimeInt64() && Util.GetCurrentTimeInt64() < 181000)
                     {
-                        var isUnderProfitBuySet = RedisConnector.IsFlagOn(Form1.UnderProfitBuySetKey, Form1.IsRealServer);
+                        var isUnderProfitBuySet = RedisConnector.IsFlagOn(Form1.UnderProfitBuySetFlagKey, Form1.IsRealServer);
                         if (!isUnderProfitBuySet)
                         {
                             var serializeInfo = RedisConnector.GetString(Form1.HavingStockInfoKey, Form1.IsRealServer);
@@ -115,14 +115,14 @@ namespace kingkakps
                                     //RedisConnector.SetString(HavingStockInfoKey, savingInfo, IsRealServer);
                                 }
 
-                                RedisConnector.FlagOn(Form1.UnderProfitBuySetKey, Form1.IsRealServer);
+                                RedisConnector.FlagOn(Form1.UnderProfitBuySetFlagKey, Form1.IsRealServer);
                             }
                         }
                     }
 
                     if (181000 < Util.GetCurrentTimeInt64() && Util.GetCurrentTimeInt64() < 182000)
                     {
-                        var isLongTermBuySet = RedisConnector.IsFlagOn(Form1.LongTermBuySetKey, Form1.IsRealServer);
+                        var isLongTermBuySet = RedisConnector.IsFlagOn(Form1.LongTermBuySetFlagKey, Form1.IsRealServer);
                         if (!isLongTermBuySet)
                         {
                             var ret = KHConnector.Instance.SendCondition(ConditionName.최근결산PER30, 1, 0);

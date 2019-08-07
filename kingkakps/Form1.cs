@@ -15,10 +15,10 @@ namespace kingkakps
         static public ManualResetEvent LoginEvent = new ManualResetEvent(false);
 
         static public readonly string LongTermBuyListKey = "LongTermBuyList";
-        static public readonly string LongTermBuySetKey = "LongTermBuySet";
+        static public readonly string LongTermBuySetFlagKey = "LongTermBuySetFlag";
 
         static public readonly string UnderProfitBuyListKey = "UnderProfitBuyList";
-        static public readonly string UnderProfitBuySetKey = "UnderProfitBuySet";
+        static public readonly string UnderProfitBuySetFlagKey = "UnderProfitBuySetFlag";
         
         static public readonly string HavingStockInfoKey = "HavingStockInfo";
         static public readonly string NotConcludedBuyKey = "NotConcludedBuy";
@@ -295,7 +295,7 @@ namespace kingkakps
                 var newSerializeCodeInfos = JsonConvert.SerializeObject(codeInfos);
                 RedisConnector.SetString(LongTermBuyListKey, newSerializeCodeInfos, IsRealServer);
                 // LongTermBuySetKey 플래그를 켠다.
-                RedisConnector.FlagOn(LongTermBuySetKey, IsRealServer);
+                RedisConnector.FlagOn(LongTermBuySetFlagKey, IsRealServer);
             }
         }
 
@@ -344,7 +344,6 @@ namespace kingkakps
                     KHConnector.Instance.GetStockBasicInfo(codeName);
                     System.Threading.Thread.Sleep(400);
                 }
-                
             }
         }
 
